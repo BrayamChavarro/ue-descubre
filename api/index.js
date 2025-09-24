@@ -4,11 +4,11 @@ let appError;
 
 // Inicializar la app de forma segura
 try {
-    // Usar versión con DB para probar conexión MongoDB
-    app = require('../app-with-db');
-    console.log('✅ App con DB inicializada correctamente');
+    // Usar versión completa con manejo robusto de errores
+    app = require('../app-complete');
+    console.log('✅ App completa inicializada correctamente');
 } catch (error) {
-    console.error('❌ Error inicializando app con DB:', error.message);
+    console.error('❌ Error inicializando app completa:', error.message);
     console.error('Stack trace:', error.stack);
     appError = error;
 }
