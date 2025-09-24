@@ -4,10 +4,11 @@ let appError;
 
 // Inicializar la app de forma segura
 try {
-    app = require('../app');
-    console.log('✅ App inicializada correctamente');
+    // Usar versión simple primero para debug
+    app = require('../app-simple');
+    console.log('✅ App simple inicializada correctamente');
 } catch (error) {
-    console.error('❌ Error inicializando app:', error.message);
+    console.error('❌ Error inicializando app simple:', error.message);
     console.error('Stack trace:', error.stack);
     appError = error;
 }
