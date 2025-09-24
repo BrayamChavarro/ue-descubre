@@ -134,18 +134,26 @@ try {
     }
     
     try {
-        const estudiantesRoutes = require('./routes/estudiantes.routes');
+        const estudiantesRoutes = require('./routes/estudiantes-simple.routes');
         app.use('/api/estudiantes', estudiantesRoutes);
-        console.log('✅ Rutas estudiantes cargadas');
+        console.log('✅ Rutas estudiantes simples cargadas');
     } catch (err) {
-        console.error('❌ Error cargando rutas estudiantes:', err.message);
+        console.error('❌ Error cargando rutas estudiantes simples:', err.message);
         
-        // Fallback estudiantes simple
+        // Fallback estudiantes básico
         app.get('/api/estudiantes', (req, res) => {
             res.status(503).json({ 
                 success: false, 
                 message: 'Servicio de estudiantes temporalmente no disponible',
                 error: 'Estudiantes routes loading failed'
+            });
+        });
+        
+        app.post('/api/estudiantes/registro', (req, res) => {
+            res.status(503).json({ 
+                success: false, 
+                message: 'Servicio de registro temporalmente no disponible',
+                error: 'Registration service failed'
             });
         });
     }
