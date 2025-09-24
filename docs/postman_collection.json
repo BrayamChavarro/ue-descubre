@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "UE Descubre API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección para probar endpoints con sesiones y JWT"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {"method": "GET","url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "Auth - Login (Session + JWT)",
+      "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}"},"url": "{{baseUrl}}/auth/login"},
+      "event": [{"listen":"test","script":{"exec":["const json = pm.response.json();","if(json.tokens){ pm.environment.set('accessToken', json.tokens.accessToken); pm.environment.set('refreshToken', json.tokens.refreshToken); }"],"type":"text/javascript"}}]
+    },
+    {
+      "name": "Auth - Verify Session",
+      "request": {"method": "GET","url": "{{baseUrl}}/auth/verify"}
+    },
+    {
+      "name": "Auth - Profile (JWT)",
+      "request": {"method":"GET","header":[{"key":"Authorization","value":"Bearer {{accessToken}}"}],"url":"{{baseUrl}}/auth/profile"}
+    },
+    {
+      "name": "Auth - Refresh",
+      "request": {"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"},"url":"{{baseUrl}}/auth/refresh"},
+      "event": [{"listen":"test","script":{"exec":["const json = pm.response.json();","if(json.accessToken){ pm.environment.set('accessToken', json.accessToken); }"],"type":"text/javascript"}}]
+    },
+    {
+      "name": "Estudiantes - Registro",
+      "request": {"method": "POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"nombre\": \"Ana\",\n  \"email\": \"ana@example.com\",\n  \"telefono\": \"3000000000\",\n  \"resultado\": {\n    \"archetypeId\": 1,\n    \"compatibilidad\": 80,\n    \"programa\": \"Administración\"\n  }\n}"},"url": "{{baseUrl}}/estudiantes/registro"}
+    },
+    {
+      "name": "Estudiantes - Listar (session)",
+      "request": {"method": "GET","url": "{{baseUrl}}/estudiantes?limit=5"}
+    },
+    {
+      "name": "Estudiantes - Export CSV",
+      "request": {"method": "GET","url": "{{baseUrl}}/estudiantes/export/csv"}
+    },
+    {
+      "name": "Estudiantes - Export XLSX",
+      "request": {"method": "GET","url": "{{baseUrl}}/estudiantes/export/xlsx"}
+    },
+    {
+      "name": "Estadísticas",
+      "request": {"method": "GET","url": "{{baseUrl}}/estadisticas"}
+    },
+    {
+      "name": "Auth - Logout",
+      "request": {"method": "POST","url": "{{baseUrl}}/auth/logout"}
+    }
+  ],
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:3000/api"}
+  ]
+}

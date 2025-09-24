@@ -1,72 +1,108 @@
-# Tu Futuro Dual - Uniempresarial
+# Tu Futuro Dual - API (Backend Only)
 
-Sistema de evaluación vocacional para estudiantes de Uniempresarial.
+Este repositorio ahora contiene **exclusivamente el backend (API REST)** del sistema de evaluación vocacional. Todo el frontend (HTML/CSS/JS) fue retirado deliberadamente según la solicitud para mantener un servicio puramente de datos.
 
-## 🚀 Despliegue en Vercel
+## ✅ Características Actuales
 
-### Variables de Entorno Requeridas
+- API para registro de estudiantes y resultados
+- Autenticación de administradores (sesiones persistentes usando `connect-mongo` si está disponible)
+- Endpoints protegidos para listar, filtrar y eliminar estudiantes
+- Estadísticas agregadas (conteo global, últimos 30 días, agrupación por arquetipo)
+- Health check
 
-Configura las siguientes variables en tu dashboard de Vercel:
+## 📁 Estructura Principal
 
-```bash
-MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/uempresarial?retryWrites=true&w=majority
-SESSION_SECRET=tu_clave_secreta_muy_segura_aqui
+```
+├── server.js                # App Express (solo API)
+├── api/index.js             # Handler (Vercel)
+├── netlify/functions/api.js # Handler (Netlify Functions)
+├── netlify.toml             # Config Netlify
+├── vercel.json              # Config Vercel
+├── models/
+│   ├── Admin.js
+│   └── Estudiante.js
+├── config/env.js            # Configuración y variables de entorno centralizadas
+├── package.json
+└── README.md
+```
+
+## 🔐 Variables de Entorno
+
+Configura en tu plataforma (Vercel / Netlify / Railway / Render):
+
+```
+MONGODB_URI=...
+DB_NAME=uempresarial
+SESSION_SECRET=una_clave_segura
 NODE_ENV=production
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=tu_password_admin
+ADMIN_PASSWORD=admin123   # Cambiar en prod
 ```
 
-### Pasos para Desplegar
+## 🌐 Endpoints Disponibles
 
-1. **Sube el código a GitHub**
-2. **Conecta Vercel con tu repositorio**
-3. **Configura las variables de entorno**
-4. **Deploy automático**
+| Método | Ruta                          | Auth | Descripción |
+|--------|-------------------------------|------|-------------|
+| GET    | /api/health                   | No   | Verifica estado |
+| POST   | /api/auth/login               | No   | Inicia sesión admin |
+| POST   | /api/auth/logout              | Sí   | Cierra sesión |
+| GET    | /api/auth/verify              | Sí   | Verifica sesión |
+| POST   | /api/estudiantes/registro     | No   | Registra estudiante y resultado |
+| GET    | /api/estudiantes              | Sí   | Lista (paginación/filtros) |
+| GET    | /api/estudiantes/:id          | Sí   | Obtiene un estudiante |
+| DELETE | /api/estudiantes/:id          | Sí   | Elimina un estudiante |
+| GET    | /api/estadisticas             | Sí   | Datos agregados |
+| *      | (cualquier otra ruta)         | -    | 404 JSON { message: 'Recurso no encontrado' } |
 
-### Estructura del Proyecto
+## 🔄 Autenticación
 
+- Basada en sesión (cookie `sessionId`).
+- Si `connect-mongo` está instalado y `MONGODB_URI` configurada, las sesiones se guardan en la colección `sessions` (persistencia entre despliegues y escalado horizontal). Si no, fallback a memoria (no recomendado en producción).
+- Recomendación futura: migrar a JWT + refresh tokens para entornos totalmente serverless/stateless.
+
+## 🚀 Despliegue
+
+### Netlify (Functions)
+1. Asegura `netlify.toml` (ya incluido).
+2. Directorio de Functions: `netlify/functions`
+3. Install: `npm install`
+4. Deploy. Los llamados van a `/api/...`.
+
+### Vercel
+1. Usa `api/index.js` como entry (ya incluido).
+2. Configura variables de entorno.
+3. Deploy.
+
+## 🧪 Ejemplos cURL
+
+```bash
+# Health
+curl https://tu-dominio/api/health
+
+# Login
+curl -X POST https://tu-dominio/api/auth/login \
+	-H 'Content-Type: application/json' \
+	-d '{"username":"admin","password":"admin123"}' -c cookies.txt
+
+# Verificar sesión
+curl https://tu-dominio/api/auth/verify -b cookies.txt
+
+# Registrar estudiante
+curl -X POST https://tu-dominio/api/estudiantes/registro \
+	-H 'Content-Type: application/json' \
+	-d '{"nombre":"Juan","email":"juan@example.com","telefono":"3001112222","resultado":{"archetypeId":1,"programa":"Negocios Internacionales","compatibilidad":82}}'
 ```
-├── server.js              # Servidor principal
-├── index.html             # Página principal de evaluación
-├── admin.html             # Panel de administración
-├── estudiantes.html       # Gestión de estudiantes
-├── estadisticas.html      # Estadísticas y gráficos
-├── login.html             # Página de login
-├── styles.css             # Estilos principales
-├── script.js              # Lógica de evaluación
-├── admin-dashboard.js     # Dashboard principal
-├── estudiantes.js         # Gestión de estudiantes
-├── estadisticas.js        # Estadísticas
-├── configuraciones.js     # Configuraciones
-└── vercel.json            # Configuración de Vercel
-```
 
-### Funcionalidades
+## ✅ Próximas Mejoras Sugeridas
 
-- ✅ Evaluación vocacional interactiva
-- ✅ Panel de administración
-- ✅ Gestión de estudiantes
-- ✅ Estadísticas y gráficos
-- ✅ Exportación a Excel
-- ✅ Autenticación segura
-- ✅ Base de datos MongoDB
+- Sustituir sesiones por JWT + refresh tokens (stateless)
+- Añadir validación con Joi/Zod
+- Paginación más eficiente (cursor) para grandes volúmenes
+- Índices en Mongo para campos consultados frecuentemente
 
-### Tecnologías
+## 📄 Nota
 
-- **Frontend**: HTML5, CSS3, JavaScript, Tailwind CSS
-- **Backend**: Node.js, Express.js
-- **Base de Datos**: MongoDB
-- **Autenticación**: Express Session, bcryptjs
-- **Gráficos**: Chart.js
-- **Exportación**: XLSX
+El frontend fue removido completamente de este repositorio. Mantén tu copia externa sincronizada con los endpoints listados.
 
-### Acceso
-
-- **Evaluación**: `https://tu-dominio.vercel.app/`
-- **Admin**: `https://tu-dominio.vercel.app/admin`
-- **Login**: `https://tu-dominio.vercel.app/admin/login`
-
-### Credenciales por Defecto
-
-- **Usuario**: admin
-- **Contraseña**: (configurar en variables de entorno)
+---
+Si necesitas que agregue JWT o un store de sesiones persistente, pídelo y lo integramos.

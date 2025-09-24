@@ -64,3 +64,13 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Evitar reintroducción accidental de frontend
+admin-dashboard.js
+admin.js
+configuraciones.js
+createAdmin.js
+estadisticas.js
+estudiantes.js
+script.js
+public/

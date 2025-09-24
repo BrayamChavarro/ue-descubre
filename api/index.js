@@ -1,9 +1,6 @@
-// Punto de entrada para Vercel
-const app = require('../server');
-
-// Exportar como handler para Vercel
+// Punto de entrada para Vercel (API Only)
+const app = require('../app');
 module.exports = (req, res) => {
-    // Log para debugging
     console.log(`🚀 Vercel Handler: ${req.method} ${req.url}`);
     return app(req, res);
 };

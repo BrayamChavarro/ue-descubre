@@ -1,0 +1,25 @@
+###############################################
+# Netlify configuration - API only deployment #
+###############################################
+
+[build]
+  command = ""
+  publish = "."          # No frontend served; can be trimmed later
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+# Optional: block root access (returns 404) since API-only
+[[redirects]]
+  from = "/"
+  to = "/api/health"
+  status = 200
+
+# Admin legacy routes returning JSON guidance
+[[redirects]]
+  from = "/admin/*"
+  to = "/api/health"
+  status = 200

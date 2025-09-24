@@ -7,30 +7,8 @@
     }
   ],
   "routes": [
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.js"
-    },
-    {
-      "src": "/admin$",
-      "dest": "api/index.js"
-    },
-    {
-      "src": "/admin/login",
-      "dest": "api/index.js"
-    },
-    {
-      "src": "/admin/(.*)",
-      "dest": "api/index.js"
-    },
-    {
-      "src": "/",
-      "dest": "api/index.js"
-    }
+    { "src": "/api/(.*)", "dest": "api/index.js" },
+    { "src": "/", "dest": "api/index.js" }
   ],
   "env": {
     "NODE_ENV": "production"
