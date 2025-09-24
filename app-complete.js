@@ -157,6 +157,14 @@ try {
     } catch (err) {
         console.error('❌ Error cargando rutas estadísticas:', err.message);
     }
+    
+    try {
+        const debugRoutes = require('./routes/debug.routes');
+        app.use('/api', debugRoutes);
+        console.log('✅ Rutas debug cargadas');
+    } catch (err) {
+        console.error('❌ Error cargando rutas debug:', err.message);
+    }
 }
 
 // Ruta raíz
@@ -167,6 +175,7 @@ app.get('/', (req, res) => {
         timestamp: new Date().toISOString(),
         endpoints: [
             'GET /api/health',
+            'GET /api/debug/env',
             'POST /api/auth/login',
             'GET /api/auth/verify',
             'POST /api/estudiantes/registro',
