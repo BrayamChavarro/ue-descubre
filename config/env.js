@@ -4,7 +4,13 @@ const required = ['MONGODB_URI', 'SESSION_SECRET', 'ADMIN_USERNAME', 'ADMIN_PASS
 const missing = required.filter(k => !process.env[k]);
 if (missing.length) {
   console.warn('[config] Variables de entorno faltantes:', missing.join(', '));
+  console.warn('[config] La aplicación usará valores por defecto, pero puede no funcionar correctamente en producción');
 }
+
+// Log de configuración (sin mostrar secrets)
+console.log('[config] NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('[config] MONGODB_URI configurada:', !!(process.env.MONGODB_URI));
+console.log('[config] SESSION_SECRET configurada:', !!(process.env.SESSION_SECRET));
 
 module.exports = {
   PORT: process.env.PORT || 3000,

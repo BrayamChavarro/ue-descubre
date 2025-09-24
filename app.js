@@ -25,15 +25,20 @@ app.use(requestLogger);
 // Session (persistente usando Mongo si es posible). Fallback a memory-store si falla.
 let sessionStore;
 try {
-  MongoStore = require('connect-mongo');
-  sessionStore = MongoStore.create({
-    mongoUrl: config.MONGODB_URI,
-    dbName: config.DB_NAME,
-    collectionName: 'sessions',
-    ttl: 24 * 60 * 60 // 1 día en segundos
-  });
-  // Nota: connect-mongo maneja reconexiones internamente.
-  console.log('🗄️  Session store Mongo habilitado');
+  if (config.MONGODB_URI && config.MONGODB_URI !== 'mongodb://localhost:27017/uempresarial') {
+    MongoStore = require('connect-mongo');
+    sessionStore = MongoStore.create({
+      mongoUrl: config.MONGODB_URI,
+      dbName: config.DB_NAME,
+      collectionName: 'sessions',
+      ttl: 24 * 60 * 60, // 1 día en segundos
+      touchAfter: 24 * 3600 // lazy session update
+    });
+    // Nota: connect-mongo maneja reconexiones internamente.
+    console.log('🗄️  Session store Mongo habilitado');
+  } else {
+    console.warn('⚠️  MONGODB_URI no configurada o usando valor por defecto, usando memory store');
+  }
 } catch (err) {
   console.warn('⚠️  No se pudo inicializar connect-mongo, usando memory store (NO recomendado en producción):', err.message);
 }
@@ -53,21 +58,60 @@ app.use(session({
   name: 'sessionId'
 }));
 
-// DB connection (warm up)
-connectToDatabase().catch(err => {
-  console.error('❌ Error inicializando conexión a MongoDB:', err.message);
-});
+// DB connection (warm up) - no blocking
+if (config.MONGODB_URI && config.MONGODB_URI !== 'mongodb://localhost:27017/uempresarial') {
+  connectToDatabase().catch(err => {
+    console.error('❌ Error inicializando conexión a MongoDB:', err.message);
+    console.warn('⚠️  La aplicación continuará funcionando, pero algunas funciones pueden fallar');
+  });
+} else {
+  console.warn('⚠️  MONGODB_URI no configurada correctamente, saltando conexión inicial');
+}
 
-// Health
+// Health check - sin dependencias externas
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), env: config.NODE_ENV });
+  const mongoose = require('mongoose');
+  const healthData = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    env: config.NODE_ENV,
+    version: process.version,
+    mongodb: {
+      configured: !!(config.MONGODB_URI && config.MONGODB_URI !== 'mongodb://localhost:27017/uempresarial'),
+      connected: mongoose.connection.readyState === 1,
+      state: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown'
+    },
+    session: {
+      store: sessionStore ? 'mongodb' : 'memory'
+    }
+  };
+  res.json(healthData);
 });
 
 // Attach rate limiter for login specifically (controller route will use path /api/auth/login)
-app.use('/api/auth/login', loginLimiter);
+try {
+  app.use('/api/auth/login', loginLimiter);
+  console.log('✅ Rate limiter aplicado');
+} catch (err) {
+  console.warn('⚠️  Error aplicando rate limiter:', err.message);
+}
 
 // API routes
-app.use('/api', routes);
+try {
+  app.use('/api', routes);
+  console.log('✅ Rutas API cargadas');
+} catch (err) {
+  console.error('❌ Error cargando rutas API:', err.message);
+  // Crear ruta de fallback
+  app.use('/api', (req, res) => {
+    res.status(500).json({ 
+      success: false, 
+      message: 'API routes not available',
+      error: 'Routes loading failed'
+    });
+  });
+}
 
 // 404 handler (after routes, before error handler)
 app.use((req, res, next) => {
